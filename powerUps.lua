@@ -6,5 +6,5 @@
 -- To change this template use File | Settings | File Templates.
 --
 
-speedDoublePowerUp = {x = nil, y = nil, speedMultiplier = 2.0, speed = 300, spawnChance = 0.01, img = love.graphics.newImage("assets/speedDoublePowerUp.png")}
+speedDoublePowerUp = {x = nil, y = nil, speedMultiplier = 2.0, speed = 200, spawnChance = 0.01, img = love.graphics.newImage("assets/speedDoublePowerUp.png")}
 

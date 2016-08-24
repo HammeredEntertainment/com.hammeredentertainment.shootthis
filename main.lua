@@ -21,8 +21,6 @@ score = 0
 playTimeDefault = 30 -- Playtime in seconds
 start = 0
 
-
-
 playerImg = nil
 playerDefault = { x = 220, y = 710, speed = 150, weapon = weapon1, img = nil}
 canShoot = true
@@ -36,8 +34,11 @@ createEnemyTimerMax = 1.0
 createEnemyTimer = createEnemyTimerMax
 enemies = {}
 
+powerUpImg = nil
+createPowerUpTimerMax = 3.0
+createPowerUpTimer = createPowerUpTimerMax
 powerUps = {}
-
+powerUpActive = false
 
 player = { x = playerDefault.x, y = playerDefault.y, weapon = playerDefault.weapon, speed = playerDefault.speed, img = playerDefault.img }
 
@@ -53,6 +54,7 @@ function love.load(arg)
     enemyImg = love.graphics.newImage("assets/enemy.png")
     enemyDamagedImg = love.graphics.newImage("assets/enemyDamaged.png")
     enemyDamagedHeavyImg = love.graphics.newImage("assets/enemyDamagedHeavy.png")
+    powerUpImg = speedDoublePowerUp.img
     playTime = playTimeDefault
 end
 
@@ -125,21 +127,41 @@ function love.update(dt)
         end
     end
 
-    -- Create PowerUps
-    randomNumber = math.random(0, 100)
-    if  randomNumber < 100*speedDoublePowerUp.spawnChance then
-        --speedDoublePowerUp.x = math.random(speedDoublePowerUp.img:getWidth() ,love.graphics.getWidth())
-        speedDoublePowerUp.x = 100
-        speedDoublePowerUp.y = -speedDoublePowerUp.img:getHeight()
-        table.insert(powerUps, speedDoublePowerUp)
+    -- Create a PowerUp
+    createPowerUpTimer = createPowerUpTimer - (1*dt)
+    if createPowerUpTimer < 0 and math.random(0,100) <= 100/speedDoublePowerUp.spawnChance then
+        createPowerUpTimer = createPowerUpTimerMax
+
+        -- Create an powerUp
+        randomNumber = math.random(powerUpImg:getWidth(), love.graphics.getWidth() - powerUpImg:getWidth())
+        newPowerUp = { x = randomNumber, y = -powerUpImg:getHeight(), speed = 100, img = powerUpImg, hitPoints = 100}
+        table.insert(powerUps, newPowerUp)
     end
 
     for i, powerUp in ipairs(powerUps) do
         powerUp.y = powerUp.y + (powerUp.speed * dt)
+
         if powerUp.y > 850 then
             table.remove(powerUps, i)
         end
     end
+
+--    -- Create PowerUps
+--    randomNumber = math.random(0, 100)
+--    randomX = math.random(speedDoublePowerUp.img:getWidth() ,love.graphics.getWidth()-speedDoublePowerUp.img:getWidth())
+--
+--    if  randomNumber < 100 * speedDoublePowerUp.spawnChance then
+--        speedDoublePowerUp.x = randomX
+--        speedDoublePowerUp.y = -speedDoublePowerUp.img:getHeight()
+--        table.insert(powerUps, speedDoublePowerUp)
+--    end
+--
+--    for i, powerUp in ipairs(powerUps) do
+--        powerUp.y = powerUp.y + (powerUp.speed * dt)
+--        if powerUp.y > 850 then
+--            table.remove(powerUps, i)
+--        end
+--    end
 
 
 
@@ -167,6 +189,13 @@ function love.update(dt)
         end
     end
 
+    -- Check Collision with powerUp and Player and assign stat boost
+    for i, powerUp in ipairs(powerUps) do
+        if CheckCollision(powerUp.x, powerUp.y, powerUp.img:getWidth(), powerUp.img:getHeight(), player.x, player.y, player.img:getWidth(), player.img:getHeight()) then
+            -- DO SOMETHING HERE ON COLLISION
+        end
+    end
+
     for i, enemy in ipairs(enemies) do
         if enemy.y > love.graphics.getHeight() then
             isAlive = false
@@ -175,9 +204,10 @@ function love.update(dt)
     end
 
 
-    if not isAlive then -- remove all our bullets and enemies from screen
+    if not isAlive then -- remove all our bullets, powerUps and enemies from screen
         bullets = {}
         enemies = {}
+        powerUps = {}
     end
 
     if not isAlive and love.keyboard.isDown('r') then
@@ -210,6 +240,7 @@ function love.draw(dt)
         for i, bullet in ipairs(bullets) do
             love.graphics.draw(bullet.img, bullet.x, bullet.y)
         end
+
         for i, enemy in ipairs(enemies) do
             love.graphics.draw(enemy.img, enemy.x, enemy.y)
         end
