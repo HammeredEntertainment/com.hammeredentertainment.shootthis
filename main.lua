@@ -14,7 +14,9 @@
 --debug.debug()
 
 require("weapons")
-require("powerUps")
+require("powerUpClass")
+
+powerUps = powerUpClass
 
 isAlive = true
 score = 0
@@ -34,12 +36,6 @@ createEnemyTimerMax = 1.0
 createEnemyTimer = createEnemyTimerMax
 enemies = {}
 
-powerUpImg = nil
-createPowerUpTimerMax = 3.0
-createPowerUpTimer = createPowerUpTimerMax
-powerUps = {}
-powerUpActive = false
-
 player = { x = playerDefault.x, y = playerDefault.y, weapon = playerDefault.weapon, speed = playerDefault.speed, img = playerDefault.img }
 
 function CheckCollision(x1,y1,w1,h1, x2,y2,w2,h2)
@@ -54,160 +50,130 @@ function love.load(arg)
     enemyImg = love.graphics.newImage("assets/enemy.png")
     enemyDamagedImg = love.graphics.newImage("assets/enemyDamaged.png")
     enemyDamagedHeavyImg = love.graphics.newImage("assets/enemyDamagedHeavy.png")
-    powerUpImg = speedDoublePowerUp.img
+    powerUps:load()
     playTime = playTimeDefault
 end
 
 function love.update(dt)
-
-    -- Test Weapon Switch Implementation // Needs to be removed
-    if love.keyboard.isDown('1') then player.weapon = weapon1 end
-    if love.keyboard.isDown('2') then player.weapon = weapon2 end
-    --
-
-    playTime = playTime - dt
-
     if love.keyboard.isDown('escape') then
         love.event.push('quit')
     end
 
-    if love.keyboard.isDown('left','a') then
-        if player.x > 0 then
-        player.x = player.x - (player.speed*dt)
-        end
+    -- Start isAlive
+    if isAlive == true then
+        -- Test Weapon Switch Implementation // Needs to be removed
+        if love.keyboard.isDown('1') then player.weapon = weapon1 end
+        if love.keyboard.isDown('2') then player.weapon = weapon2 end
+        --
 
-    elseif love.keyboard.isDown('right','d') then
-        if player.x < (love.graphics.getWidth() - player.img:getWidth()) then
-        player.x = player.x + (player.speed*dt)
-        end
+        playTime = playTime - dt
 
-    end
 
-    if love.keyboard.isDown('space') and canShoot then
+        if love.keyboard.isDown('left','a') then
+            if player.x > 0 then
+                player.x = player.x - (player.speed*dt)
+            end
 
-        if player.weapon.fireMode == 1 then
-            newBullet = { x = player.x + (player.img:getWidth()/2-player.weapon.bulletImg:getWidth()/2), y = player.y - player.weapon.bulletImg:getHeight(), img = player.weapon.bulletImg }
-            canShootTimer = player.weapon.fireRate
-        end
-
-        -- Create some bullets
-
-        table.insert(bullets, newBullet)
-        canShoot = false
+        elseif love.keyboard.isDown('right','d') then
+            if player.x < (love.graphics.getWidth() - player.img:getWidth()) then
+                player.x = player.x + (player.speed*dt)
+            end
 
         end
 
-    for i, bullet in ipairs(bullets) do
-        bullet.y = bullet.y - (250*dt)
-        if bullet.y < 0 then
-            table.remove(bullets, i)
+        if love.keyboard.isDown('space') and canShoot then
+
+            if player.weapon.fireMode == 1 then
+                newBullet = { x = player.x + (player.img:getWidth()/2-player.weapon.bulletImg:getWidth()/2), y = player.y - player.weapon.bulletImg:getHeight(), img = player.weapon.bulletImg }
+                canShootTimer = player.weapon.fireRate
+            end
+
+            -- Create some bullets
+
+            table.insert(bullets, newBullet)
+            canShoot = false
+
         end
-    end
 
-    canShootTimer = canShootTimer - (1*dt)
-    if canShootTimer < 0 then
-        canShoot = true
-    end
-
-    createEnemyTimer = createEnemyTimer - (1*dt)
-    if createEnemyTimer < 0 then
-        createEnemyTimer = createEnemyTimerMax
-
-        -- Create an enemy
-        randomNumber = math.random(enemyImg:getWidth(), love.graphics.getWidth() - enemyImg:getWidth())
-        newEnemy = { x = randomNumber, y = -enemyImg:getHeight(), speed = 100, img = enemyImg, hitPoints = 100 }
-        table.insert(enemies, newEnemy)
-    end
-
-    for i, enemy in ipairs(enemies) do
-        enemy.y = enemy.y + (enemy.speed * dt)
-
-        if enemy.y > 850 then
-            table.remove(enemies, i)
-        end
-    end
-
-    -- Create a PowerUp
-    createPowerUpTimer = createPowerUpTimer - (1*dt)
-    if createPowerUpTimer < 0 and math.random(0,100) <= 100/speedDoublePowerUp.spawnChance then
-        createPowerUpTimer = createPowerUpTimerMax
-
-        -- Create an powerUp
-        randomNumber = math.random(powerUpImg:getWidth(), love.graphics.getWidth() - powerUpImg:getWidth())
-        newPowerUp = { x = randomNumber, y = -powerUpImg:getHeight(), speed = 100, img = powerUpImg, hitPoints = 100}
-        table.insert(powerUps, newPowerUp)
-    end
-
-    for i, powerUp in ipairs(powerUps) do
-        powerUp.y = powerUp.y + (powerUp.speed * dt)
-
-        if powerUp.y > 850 then
-            table.remove(powerUps, i)
-        end
-    end
-
---    -- Create PowerUps
---    randomNumber = math.random(0, 100)
---    randomX = math.random(speedDoublePowerUp.img:getWidth() ,love.graphics.getWidth()-speedDoublePowerUp.img:getWidth())
---
---    if  randomNumber < 100 * speedDoublePowerUp.spawnChance then
---        speedDoublePowerUp.x = randomX
---        speedDoublePowerUp.y = -speedDoublePowerUp.img:getHeight()
---        table.insert(powerUps, speedDoublePowerUp)
---    end
---
---    for i, powerUp in ipairs(powerUps) do
---        powerUp.y = powerUp.y + (powerUp.speed * dt)
---        if powerUp.y > 850 then
---            table.remove(powerUps, i)
---        end
---    end
-
-
-
-    -- Collision detection, damage states and hitPoint management
-    for i, enemy in ipairs(enemies) do
-        for j, bullet in ipairs(bullets) do
-            if CheckCollision(enemy.x, enemy.y, enemy.img:getWidth(), enemy.img:getHeight(), bullet.x, bullet.y, bullet.img:getWidth(), bullet.img:getHeight()) then
-                enemy.hitPoints = enemy.hitPoints - player.weapon.baseDamage
-                if enemy.hitPoints <= 50 and enemy.hitPoints > 25 then enemy.img = enemyDamagedImg end
-                if enemy.hitPoints <= 25 and enemy.hitPoints > 0 then enemy.img = enemyDamagedHeavyImg end
-
-                if enemy.hitPoints <= 0 then
-                    table.remove(bullets, j)
-                    table.remove(enemies, i)
-                    score = score + 1
-                end
-                if enemy.hitPoints >0 then table.remove(bullets, j) end
+        for i, bullet in ipairs(bullets) do
+            bullet.y = bullet.y - (250*dt)
+            if bullet.y < 0 then
+                table.remove(bullets, i)
             end
         end
 
-        if CheckCollision(enemy.x, enemy.y, enemy.img:getWidth(), enemy.img:getHeight(), player.x, player.y, player.img:getWidth(), player.img:getHeight())
-                and isAlive then
-            table.remove(enemies, i)
-            isAlive = false
-        end
-    end
-
-    -- Check Collision with powerUp and Player and assign stat boost
-    for i, powerUp in ipairs(powerUps) do
-        if CheckCollision(powerUp.x, powerUp.y, powerUp.img:getWidth(), powerUp.img:getHeight(), player.x, player.y, player.img:getWidth(), player.img:getHeight()) then
-            -- DO SOMETHING HERE ON COLLISION
-        end
-    end
-
-    for i, enemy in ipairs(enemies) do
-        if enemy.y > love.graphics.getHeight() then
-            isAlive = false
+        canShootTimer = canShootTimer - (1*dt)
+        if canShootTimer < 0 then
+            canShoot = true
         end
 
+        createEnemyTimer = createEnemyTimer - (1*dt)
+        if createEnemyTimer < 0 then
+            createEnemyTimer = createEnemyTimerMax
+
+            -- Create an enemy
+            randomNumber = math.random(enemyImg:getWidth(), love.graphics.getWidth() - enemyImg:getWidth())
+            newEnemy = { x = randomNumber, y = -enemyImg:getHeight(), speed = 100, img = enemyImg, hitPoints = 100 }
+            table.insert(enemies, newEnemy)
+        end
+
+        for i, enemy in ipairs(enemies) do
+            enemy.y = enemy.y + (enemy.speed * dt)
+
+            if enemy.y > 850 then
+                table.remove(enemies, i)
+            end
+        end
+
+        -- powerUps Update
+        powerUps:update(dt)
+
+
+        -- Collision detection, damage states and hitPoint management
+        for i, enemy in ipairs(enemies) do
+            for j, bullet in ipairs(bullets) do
+                if CheckCollision(enemy.x, enemy.y, enemy.img:getWidth(), enemy.img:getHeight(), bullet.x, bullet.y, bullet.img:getWidth(), bullet.img:getHeight()) then
+                    enemy.hitPoints = enemy.hitPoints - player.weapon.baseDamage
+                    if enemy.hitPoints <= 50 and enemy.hitPoints > 25 then enemy.img = enemyDamagedImg end
+                    if enemy.hitPoints <= 25 and enemy.hitPoints > 0 then enemy.img = enemyDamagedHeavyImg end
+
+                    if enemy.hitPoints <= 0 then
+                        table.remove(bullets, j)
+                        table.remove(enemies, i)
+                        score = score + 1
+                    end
+                    if enemy.hitPoints >0 then table.remove(bullets, j) end
+                end
+            end
+
+            if CheckCollision(enemy.x, enemy.y, enemy.img:getWidth(), enemy.img:getHeight(), player.x, player.y, player.img:getWidth(), player.img:getHeight())
+            and isAlive then
+                table.remove(enemies, i)
+                isAlive = false
+            end
+        end
+
+
+
+        for i, enemy in ipairs(enemies) do
+            if enemy.y > love.graphics.getHeight() then
+                isAlive = false
+            end
+
+        end
+        if playTime < 0 then isAlive = false end
+
     end
+
+    -- END isAlive
+
+
 
 
     if not isAlive then -- remove all our bullets, powerUps and enemies from screen
-        bullets = {}
-        enemies = {}
-        powerUps = {}
+    bullets = {}
+    enemies = {}
+    powerUps = {}
     end
 
     if not isAlive and love.keyboard.isDown('r') then
@@ -226,13 +192,14 @@ function love.update(dt)
         score = 0
         isAlive = true
         playTime = playTimeDefault
+        powerUps = powerUpClass
     end
 
-    if playTime < 0 then isAlive = false end
 
 end
 
 function love.draw(dt)
+
     if isAlive and playTime > 0 then
         love.graphics.draw(player.img, player.x, player.y)
         love.graphics.print("Time left: " .. string.format("%i", playTime), love.graphics.getWidth()/2-30,0)
@@ -245,9 +212,8 @@ function love.draw(dt)
             love.graphics.draw(enemy.img, enemy.x, enemy.y)
         end
 
-        for i, powerUp in ipairs(powerUps) do
-            love.graphics.draw(powerUp.img, powerUp.x , powerUp.y )
-        end
+        -- Include powerUps
+        powerUps:draw(dt)
 
     else
         love.graphics.print("GAME OVER", love.graphics:getWidth()/2-30, love.graphics.getHeight()/2-40)
