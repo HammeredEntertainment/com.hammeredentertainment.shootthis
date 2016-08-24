@@ -129,3 +129,5 @@ Temporary Items
 .idea/
 bin/
 com.hammeredentertainment.shootthis.iml
+/shootthis.iml
+assets/enemyDamagedLight.png
