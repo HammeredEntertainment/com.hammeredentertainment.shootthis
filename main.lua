@@ -14,6 +14,7 @@
 --debug.debug()
 
 require("weapons")
+require("powerUps")
 
 isAlive = true
 score = 0
@@ -35,6 +36,7 @@ createEnemyTimerMax = 1.0
 createEnemyTimer = createEnemyTimerMax
 enemies = {}
 
+powerUps = {}
 
 
 player = { x = playerDefault.x, y = playerDefault.y, weapon = playerDefault.weapon, speed = playerDefault.speed, img = playerDefault.img }
@@ -47,8 +49,10 @@ function CheckCollision(x1,y1,w1,h1, x2,y2,w2,h2)
 end
 
 function love.load(arg)
-    player.img = love.graphics.newImage("Assets/player.png")
-    enemyImg = love.graphics.newImage("Assets/enemy.png")
+    player.img = love.graphics.newImage("assets/player.png")
+    enemyImg = love.graphics.newImage("assets/enemy.png")
+    enemyDamagedImg = love.graphics.newImage("assets/enemyDamaged.png")
+    enemyDamagedHeavyImg = love.graphics.newImage("assets/enemyDamagedHeavy.png")
     playTime = playTimeDefault
 end
 
@@ -121,13 +125,32 @@ function love.update(dt)
         end
     end
 
-    -- run our collision detection
-    -- Since there will be fewer enemies on screen than bullets we'll loop them first
-    -- Also, we need to see if the enemies hit our player
+    -- Create PowerUps
+    randomNumber = math.random(0, 100)
+    if  randomNumber < 100*speedDoublePowerUp.spawnChance then
+        --speedDoublePowerUp.x = math.random(speedDoublePowerUp.img:getWidth() ,love.graphics.getWidth())
+        speedDoublePowerUp.x = 100
+        speedDoublePowerUp.y = -speedDoublePowerUp.img:getHeight()
+        table.insert(powerUps, speedDoublePowerUp)
+    end
+
+    for i, powerUp in ipairs(powerUps) do
+        powerUp.y = powerUp.y + (powerUp.speed * dt)
+        if powerUp.y > 850 then
+            table.remove(powerUps, i)
+        end
+    end
+
+
+
+    -- Collision detection, damage states and hitPoint management
     for i, enemy in ipairs(enemies) do
         for j, bullet in ipairs(bullets) do
             if CheckCollision(enemy.x, enemy.y, enemy.img:getWidth(), enemy.img:getHeight(), bullet.x, bullet.y, bullet.img:getWidth(), bullet.img:getHeight()) then
                 enemy.hitPoints = enemy.hitPoints - player.weapon.baseDamage
+                if enemy.hitPoints <= 50 and enemy.hitPoints > 25 then enemy.img = enemyDamagedImg end
+                if enemy.hitPoints <= 25 and enemy.hitPoints > 0 then enemy.img = enemyDamagedHeavyImg end
+
                 if enemy.hitPoints <= 0 then
                     table.remove(bullets, j)
                     table.remove(enemies, i)
@@ -183,12 +206,18 @@ function love.draw(dt)
     if isAlive and playTime > 0 then
         love.graphics.draw(player.img, player.x, player.y)
         love.graphics.print("Time left: " .. string.format("%i", playTime), love.graphics.getWidth()/2-30,0)
+
         for i, bullet in ipairs(bullets) do
             love.graphics.draw(bullet.img, bullet.x, bullet.y)
         end
         for i, enemy in ipairs(enemies) do
             love.graphics.draw(enemy.img, enemy.x, enemy.y)
         end
+
+        for i, powerUp in ipairs(powerUps) do
+            love.graphics.draw(powerUp.img, powerUp.x , powerUp.y )
+        end
+
     else
         love.graphics.print("GAME OVER", love.graphics:getWidth()/2-30, love.graphics.getHeight()/2-40)
         love.graphics.print("Press 'R' to restart", love.graphics:getWidth()/2-50, love.graphics:getHeight()/2-10)
