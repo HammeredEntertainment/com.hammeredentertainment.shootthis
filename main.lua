@@ -49,6 +49,7 @@ function love.load(arg)
     playerClass:load(arg)
     enemyImg = love.graphics.newImage("assets/enemy.png")
     enemyDamagedImg = love.graphics.newImage("assets/enemyDamaged.png")
+    enemyDamagedLightImg = love.graphics.newImage("assetS/enemyDamagedLight.png")
     enemyDamagedHeavyImg = love.graphics.newImage("assets/enemyDamagedHeavy.png")
     powerUps:load()
     playTime = playTimeDefault
@@ -134,6 +135,7 @@ function love.update(dt)
             for j, bullet in ipairs(bullets) do
                 if CheckCollision(enemy.x, enemy.y, enemy.img:getWidth(), enemy.img:getHeight(), bullet.x, bullet.y, bullet.img:getWidth(), bullet.img:getHeight()) then
                     enemy.hitPoints = enemy.hitPoints - player.weapon.baseDamage
+                    if enemy.hitPoints >= 75 and enemy.hitPoints < 100 then enemy.img = enemyDamagedLightImg end
                     if enemy.hitPoints <= 50 and enemy.hitPoints > 25 then enemy.img = enemyDamagedImg end
                     if enemy.hitPoints <= 25 and enemy.hitPoints > 0 then enemy.img = enemyDamagedHeavyImg end
 
