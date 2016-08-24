@@ -11,10 +11,17 @@
 -- x1,y1 are the left-top coords of the first box, while w1,h1 are its width and height
 -- x2,y2,w2 & h2 are the same, but for the second box
 
---debug.debug()
+--TODO-LIST
+--TODO-Item1 -- Fix Bug with powerUps not resetting when restarting the game
+--TODO-Item2 -- Fix Bug with powerUps spawning too frequently
+--TODO-Item3 -- Add powerUp pickup behaviour (i.e., speed multiplier for X seconds)
+--TODO-Item4 -- A lot more refactoring...
+--TODO-Item5 -- Proper logic when Game Timer runs out -- now it just creates an isAlive = false and a game over
+--TODO-Item6 -- Something more - I am sure...
 
 require("weapons")
 require("powerUpClass")
+require("playerClass")
 
 powerUps = powerUpClass
 
@@ -23,12 +30,6 @@ score = 0
 playTimeDefault = 30 -- Playtime in seconds
 start = 0
 
-playerImg = nil
-playerDefault = { x = 220, y = 710, speed = 150, weapon = weapon1, img = nil}
-canShoot = true
-canShootTimerMax = 0.35
-canShootTimer = canShootTimerMax
-
 bullets = {}
 
 enemyImg = nil
@@ -36,7 +37,6 @@ createEnemyTimerMax = 1.0
 createEnemyTimer = createEnemyTimerMax
 enemies = {}
 
-player = { x = playerDefault.x, y = playerDefault.y, weapon = playerDefault.weapon, speed = playerDefault.speed, img = playerDefault.img }
 
 function CheckCollision(x1,y1,w1,h1, x2,y2,w2,h2)
     return x1 < x2+w2 and
@@ -46,7 +46,7 @@ function CheckCollision(x1,y1,w1,h1, x2,y2,w2,h2)
 end
 
 function love.load(arg)
-    player.img = love.graphics.newImage("assets/player.png")
+    playerClass:load(arg)
     enemyImg = love.graphics.newImage("assets/enemy.png")
     enemyDamagedImg = love.graphics.newImage("assets/enemyDamaged.png")
     enemyDamagedHeavyImg = love.graphics.newImage("assets/enemyDamagedHeavy.png")
