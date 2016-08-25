@@ -21,6 +21,7 @@
 
 -- Libraries
 Timer = require("libs/hump/timer")
+sfxr = require("libs/sfxr/sfxr")
 
 -- Classes
 require("weapons")
@@ -89,6 +90,13 @@ function love.update(dt)
 
         if love.keyboard.isDown('space') and canShoot then
 
+            local sound = sfxr.newSound()
+            sound:randomLaser(170)
+            local sounddata = sound:generateSoundData()
+            local source = love.audio.newSource(sounddata)
+            source:play()
+
+
             if player.weapon.fireMode == 1 then
                 newBullet = { x = player.x + (player.img:getWidth()/2-player.weapon.bulletImg:getWidth()/2), y = player.y - player.weapon.bulletImg:getHeight(), img = player.weapon.bulletImg }
                 canShootTimer = player.weapon.fireRate
@@ -148,6 +156,14 @@ function love.update(dt)
         for i, enemy in ipairs(enemies) do
             for j, bullet in ipairs(bullets) do
                 if CheckCollision(enemy.x, enemy.y, enemy.img:getWidth(), enemy.img:getHeight(), bullet.x, bullet.y, bullet.img:getWidth(), bullet.img:getHeight()) then
+
+                    -- Sound Effect on Bullet Hit
+                    local sound = sfxr.newSound()
+                    sound:randomHit(44)
+                    local sounddata = sound:generateSoundData()
+                    local source = love.audio.newSource(sounddata)
+                    source:play()
+
                     enemy.hitPoints = enemy.hitPoints - player.weapon.baseDamage
                     if enemy.hitPoints >= 75 and enemy.hitPoints < 100 then enemy.img = enemyDamagedLightImg end
                     if enemy.hitPoints <= 50 and enemy.hitPoints > 25 then enemy.img = enemyDamagedImg end
@@ -157,6 +173,14 @@ function love.update(dt)
                         table.remove(bullets, j)
                         table.remove(enemies, i)
                         score = score + 1
+
+                        -- Sound generation on destruction
+                        local sound = sfxr.newSound()
+                        sound:randomExplosion(44)
+                        local sounddata = sound:generateSoundData()
+                        local source = love.audio.newSource(sounddata)
+                        source:play()
+
                     end
                     if enemy.hitPoints >0 then table.remove(bullets, j) end
                 end

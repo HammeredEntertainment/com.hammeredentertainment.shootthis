@@ -59,6 +59,13 @@ function powerUpClass:update(dt)
         if CheckCollision(powerUp.x, powerUp.y, powerUp.img:getWidth(), powerUp.img:getHeight(), player.x, player.y, player.img:getWidth(), player.img:getHeight()) then
             -- DO SOMETHING HERE ON COLLISION
             table.remove(powerUps, i)
+
+            -- Sound Effect When Player Hit PowerUp
+            local sound = sfxr.newSound()
+            sound:randomPowerup(44)
+            local sounddata = sound:generateSoundData()
+            local source = love.audio.newSource(sounddata)
+            source:play()
         end
     end
 
