@@ -14,7 +14,7 @@
 --TODO-LIST
 --TODO-Item1 -- Fix Bug with powerUps not resetting when restarting the game
 --TODO-Item2 -- Fix Bug with powerUps spawning too frequently
---TODO-Item3 -- Add powerUp pickup behaviour (i.e., speed multiplier for X seconds)
+--TODO-Item3 -- Add powerUp behaviour (i.e., speed multiplier for X seconds)
 --TODO-Item4 -- A lot more refactoring...
 --TODO-Item5 -- Proper logic when Game Timer runs out -- now it just creates an isAlive = false and a game over
 --TODO-Item6 -- Something more - I am sure...
@@ -65,6 +65,7 @@ function love.update(dt)
         -- Test Weapon Switch Implementation // Needs to be removed
         if love.keyboard.isDown('1') then player.weapon = weapon1 end
         if love.keyboard.isDown('2') then player.weapon = weapon2 end
+        if love.keyboard.isDown('3') then player.weapon = weapon3 end
         --
 
         playTime = playTime - dt
@@ -89,9 +90,18 @@ function love.update(dt)
                 canShootTimer = player.weapon.fireRate
             end
 
-            -- Create some bullets
+            if player.weapon.fireMode == 2 then
+                newBullet = { x = player.x - player.weapon.bulletImg:getWidth()/2, y = player.y - player.weapon.bulletImg:getHeight(), img = player.weapon.bulletImg }
+                table.insert(bullets, newBullet)
+                newBullet = { x = player.x + player.weapon.bulletImg:getWidth()*2, y = player.y - player.weapon.bulletImg:getHeight(), img = player.weapon.bulletImg }
+                table.insert(bullets, newBullet)
+                canShootTimer = player.weapon.fireRate
+                newBullet = nil;
+            end
 
+            -- Create some bullets
             table.insert(bullets, newBullet)
+
             canShoot = false
 
         end
@@ -196,7 +206,6 @@ function love.update(dt)
         playTime = playTimeDefault
         powerUps = powerUpClass
     end
-
 
 end
 
