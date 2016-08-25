@@ -6,10 +6,12 @@
 -- To change this template use File | Settings | File Templates.
 --
 powerUpImg = nil
-createPowerUpTimerMax = 3.0
+createPowerUpTimerMax = 10
 createPowerUpTimer = createPowerUpTimerMax
 powerUpClass = {}
 powerUpActive = false
+powerUpBlockTimerDefault = 5.0
+powerUpBlockTimer = 0
 
 speedDoublePowerUp = {x = nil, y = nil, speedMultiplier = 2.0, speed = 200, spawnChance = 0.01, img = love.graphics.newImage("assets/speedDoublePowerUp.png")}
 
@@ -25,7 +27,7 @@ function powerUpClass:update(dt)
 
         -- Create an powerUp
         randomNumber = math.random(powerUpImg:getWidth(), love.graphics.getWidth() - powerUpImg:getWidth())
-        newPowerUp = { x = randomNumber, y = -powerUpImg:getHeight(), speed = 100, img = powerUpImg, hitPoints = 100}
+        newPowerUp = { x = randomNumber, y = -powerUpImg:getHeight(), speed = 100, img = powerUpImg, speedMultiplier = 2.0, effectTime = 2.0}
         table.insert(powerUps, newPowerUp)
     end
 
@@ -53,11 +55,26 @@ function powerUpClass:update(dt)
     --            table.remove(powerUps, i)
     --        end
     --    end
+    if powerUpBlockTimer > 0 then
+        powerUpBlockTimer = powerUpBlockTimer - (1*dt)
+        end
 
-    -- Check Collision with powerUp and Player and assign stat boost
+
+        -- Check Collision with powerUp and Player and assign stat boost
     for i, powerUp in ipairs(powerUps) do
+        if powerUpBlockTimer <= powerUpBlockTimerDefault - powerUp.effectTime and powerUpActive == true then
+            player.speed = player.speed / powerUp.speedMultiplier
+            powerUpActive = false
+        end
+
+
         if CheckCollision(powerUp.x, powerUp.y, powerUp.img:getWidth(), powerUp.img:getHeight(), player.x, player.y, player.img:getWidth(), player.img:getHeight()) then
             -- DO SOMETHING HERE ON COLLISION
+            if powerUpBlockTimer <= 0 then
+                powerUpActive = true
+                player.speed = player.speed * powerUp.speedMultiplier;
+                powerUpBlockTimer = powerUpBlockTimerDefault
+            end
             table.remove(powerUps, i)
 
             -- Sound Effect When Player Hit PowerUp
