@@ -130,3 +130,5 @@ Temporary Items
 bin/
 com.hammeredentertainment.shootthis.iml
 /shootthis.iml
+/libs/hump/docs/
+/libs/hump/README.md

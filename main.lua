@@ -19,6 +19,10 @@
 --TODO-Item5 -- Proper logic when Game Timer runs out -- now it just creates an isAlive = false and a game over
 --TODO-Item6 -- Something more - I am sure...
 
+-- Libraries
+Timer = require("libs/hump/timer")
+
+-- Classes
 require("weapons")
 require("powerUpClass")
 require("playerClass")
