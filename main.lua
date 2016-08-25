@@ -53,7 +53,8 @@ function love.load(arg)
     playerClass:load(arg)
     enemyImg = love.graphics.newImage("assets/enemy.png")
     enemyDamagedImg = love.graphics.newImage("assets/enemyDamaged.png")
-    enemyDamagedLightImg = love.graphics.newImage("assetS/enemyDamagedLight.png")
+    -- DMGLight Asset has to be uploaded and var below changed
+    enemyDamagedLightImg = love.graphics.newImage("assets/enemyDamaged.png")
     enemyDamagedHeavyImg = love.graphics.newImage("assets/enemyDamagedHeavy.png")
     powerUps:load()
     playTime = playTimeDefault
