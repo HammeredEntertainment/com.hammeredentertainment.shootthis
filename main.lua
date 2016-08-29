@@ -41,6 +41,7 @@ enemyImg = nil
 createEnemyTimerMax = 1.0
 createEnemyTimer = createEnemyTimerMax
 enemies = {}
+lastEnemySpawnXCoordinate = nil
 
 
 function CheckCollision(x1,y1,w1,h1, x2,y2,w2,h2)
@@ -59,6 +60,9 @@ function love.load(arg)
     enemyDamagedHeavyImg = love.graphics.newImage("assets/enemyDamagedHeavy.png")
     powerUps:load()
     playTime = playTimeDefault
+
+    -- added randomSeed Value
+    math.randomseed(os.time() + 42)
 end
 
 function love.update(dt)
@@ -131,14 +135,48 @@ function love.update(dt)
             canShoot = true
         end
 
+
+        -- powerUps Update
+        local numberOfPowerUpsBefore = 0
+        for i in ipairs(powerUps) do
+          numberOfPowerUpsBefore = numberOfPowerUpsBefore +1
+        end
+
+        powerUps:update(dt)
+
+        local numberOfPowerUpsAfter = 0
+        for i in ipairs(powerUps) do
+          numberOfPowerUpsAfter = numberOfPowerUpsAfter +1
+        end
+
+-- If there is a new PowerUp, I don't want a new enemy
         createEnemyTimer = createEnemyTimer - (1*dt)
-        if createEnemyTimer < 0 then
+        if createEnemyTimer < 0 then --and (numberOfPowerUpsAfter == numberOfPowerUpsBefore) then
             createEnemyTimer = createEnemyTimerMax
 
             -- Create an enemy
-            randomNumber = math.random(enemyImg:getWidth(), love.graphics.getWidth() - enemyImg:getWidth())
+            while(lastEnemySpawnXCoordinate == randomNumber)
+            do
+              randomNumber = math.random(enemyImg:getWidth(), love.graphics.getWidth() - enemyImg:getWidth())
+
+              for i, powerup in ipairs(powerUps) do
+              --  print (randomNumber, 0, enemyImg:getWidth(), enemyImg:getHeight(), powerup.x, powerup.img:getHeight(), powerup.img:getWidth(), powerup.img:getHeight())
+                if CheckCollision(randomNumber +1, 0, enemyImg:getWidth(), enemyImg:getHeight(), powerup.x, 0, powerup.img:getWidth(), powerup.img:getHeight()) then
+            --      print ('huhu')
+                  randomNumber = randomNumber + (2*powerup.img:getWidth())
+                  if randomNumber > love.graphics.getWidth() then
+              --      print ('huhu2')
+                    randomNumber = randomNumber - 4*enemyImg:getWidth()
+                  end
+                end
+--  print ('huhuOut')
+              end
+            end
             newEnemy = { x = randomNumber, y = -enemyImg:getHeight(), speed = 100, img = enemyImg, hitPoints = 100 }
             table.insert(enemies, newEnemy)
+
+            -- save the coordinate to prevent that the next enemy is spawning behind the previous
+            lastEnemySpawnXCoordinate = randomNumber
         end
 
         for i, enemy in ipairs(enemies) do
@@ -149,8 +187,7 @@ function love.update(dt)
             end
         end
 
-        -- powerUps Update
-        powerUps:update(dt)
+
 
 
         -- Collision detection, damage states and hitPoint management
@@ -256,9 +293,14 @@ function love.draw(dt)
         powerUps:draw(dt)
 
     else
+      if playTime < 0 then
+        love.graphics.print("You won!!!", love.graphics:getWidth()/2-30, love.graphics.getHeight()/2-40)
+        love.graphics.print("Press 'R' to restart", love.graphics:getWidth()/2-50, love.graphics:getHeight()/2-10)
+      else
         love.graphics.print("GAME OVER", love.graphics:getWidth()/2-30, love.graphics.getHeight()/2-40)
         love.graphics.print("Press 'R' to restart", love.graphics:getWidth()/2-50, love.graphics:getHeight()/2-10)
     end
+  end
 
     love.graphics.print("Score: " .. score, 0,0)
 end

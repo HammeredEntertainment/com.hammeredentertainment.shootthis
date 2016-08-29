@@ -8,12 +8,14 @@
 powerUpImg = nil
 createPowerUpTimerMax = 10
 createPowerUpTimer = createPowerUpTimerMax
+increaseSpawnChanceTimer = 1
 powerUpClass = {}
 powerUpActive = false
 powerUpBlockTimerDefault = 5.0
 powerUpBlockTimer = 0
+defaultSpawnChance = 0.1
 
-speedDoublePowerUp = {x = nil, y = nil, speedMultiplier = 2.0, speed = 200, spawnChance = 0.01, img = love.graphics.newImage("assets/speedDoublePowerUp.png")}
+speedDoublePowerUp = {x = nil, y = nil, speedMultiplier = 2.0, speed = 200, spawnChance = defaultSpawnChance, img = love.graphics.newImage("assets/speedDoublePowerUp.png")}
 
 function powerUpClass:load()
     powerUpImg = speedDoublePowerUp.img
@@ -22,13 +24,22 @@ end
 function powerUpClass:update(dt)
     -- Create a PowerUp
     createPowerUpTimer = createPowerUpTimer - (1*dt)
-    if createPowerUpTimer < 0 and math.random(0,100) <= 100/speedDoublePowerUp.spawnChance then
+    if createPowerUpTimer < 0 then
         createPowerUpTimer = createPowerUpTimerMax
 
-        -- Create an powerUp
         randomNumber = math.random(powerUpImg:getWidth(), love.graphics.getWidth() - powerUpImg:getWidth())
+
         newPowerUp = { x = randomNumber, y = -powerUpImg:getHeight(), speed = 100, img = powerUpImg, speedMultiplier = 2.0, effectTime = 2.0}
         table.insert(powerUps, newPowerUp)
+      else
+        -- if there is no new power up, then you got a higher chance next time
+         increaseSpawnChanceTimer = increaseSpawnChanceTimer- (1*dt)
+        if  increaseSpawnChanceTimer < 0 then
+         if math.random(0,100) > 95 then
+           createPowerUpTimer = createPowerUpTimer - 1
+           increaseSpawnChanceTimer = 1
+        end
+      end
     end
 
     for i, powerUp in ipairs(powerUps) do
